@@ -25,7 +25,12 @@ const AltTimeMenuButton = new Lang.Class({
         this._clockDisplay = new St.Label({text: 'Initialising', opacity: 150});
         this.actor.add_actor(this._clockDisplay);
 
-        item = this.menu.addSettingsAction(_("Date and Time Settings"), 'gnome-datetime-panel.desktop');
+        item = this.menu.addAction('UTC', global.log);
+        item = this.menu.addAction('UTC+1', global.log);
+        item = this.menu.addAction('UTC+2', global.log);
+        item = this.menu.addAction('UTC+3', global.log);
+        item = this.menu.addAction('UTC+4', global.log);
+        item = this.menu.addAction('UTC+8', global.log);
 //        this._clock = new GnomeDesktop.WallClock();
     },
 
@@ -98,10 +103,12 @@ MultiClock.prototype = {
     enable: function() {
 	global.log (this.button);
         this.button.enable();
-	Main.panel._centerBox.insert_child_at_index(this.button.container, 1);
+	Main.panel._centerBox.add_actor(this.button.container);
+	Main.panel.menuManager.addMenu(this.button.menu);
     },
 
     disable: function() {
+	Main.panel.menuManager.removeMenu(this.button.menu);
 	Main.panel._centerBox.remove_actor(this.button.container);
         this.button.disable();
     }
