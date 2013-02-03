@@ -24,22 +24,26 @@ const AltTimeMenuButton = new Lang.Class({
         this._clockDisplay = new St.Label({text: 'Initialising', opacity: 150});
         this.actor.add_actor(this._clockDisplay);
 
-        item = this.menu.addAction('UTC', global.log);
-        item = this.menu.addAction('UTC+1', global.log);
-        item = this.menu.addAction('UTC+2', global.log);
-        item = this.menu.addAction('UTC+3', global.log);
-        item = this.menu.addAction('UTC+4', global.log);
-        item = this.menu.addAction('UTC+8', global.log);
+	this.hour_offset = 8;
+	this.minute_offset = 0;
+	this.tzname = 'WST';
+
+        item = this.menu.addAction('UTC', Lang.bind(this, function() { this.set_tz (0, 0, 'UTC'); }));
+        item = this.menu.addAction('Adelaide', Lang.bind(this, function() { this.set_tz (10, 30, 'CDT'); }));
+        item = this.menu.addAction('Perth', Lang.bind(this, function() { this.set_tz (8, 0, 'WST'); }));
+
         this._clock = new GnomeDesktop.WallClock();
     },
 
+    set_tz: function (hour_offset, minute_offset, tzname) {
+	this.hour_offset = hour_offset;
+	this.minute_offset = minute_offset;
+	this.tzname = tzname;
+        this.update_time();
+    },
 
     get_alternate_time_string: function() {
         var now = new Date();
-
-	// TODO: Make these configurable
-	var hour_offset = 8;
-	var minute_offset = 0;
 
 	// Start with UTC
 	var hour = now.getUTCHours();
@@ -47,8 +51,8 @@ const AltTimeMenuButton = new Lang.Class({
 	var tzname = 'WST';
 
 	// Apply offsets in a naive fashion
-	hour += hour_offset;
-	minute += minute_offset;
+	hour += this.hour_offset;
+	minute += this.minute_offset;
 
 	// Basic fix-up of minute wrap-around
 	if (minute < 0) {
@@ -66,7 +70,7 @@ const AltTimeMenuButton = new Lang.Class({
 		hour -= 24;
 	}
 
-	var remote_time = hour + ":" + (minute < 10 ? "0" : "") + minute + ' ' + tzname;
+	var remote_time = hour + ":" + (minute < 10 ? "0" : "") + minute + ' ' + this.tzname;
 
 	return remote_time;
     },
