@@ -1,66 +1,109 @@
-/* This program is free software. It comes without any warranty, to
- * the extent permitted by applicable law. You can redistribute it
- * and/or modify it under the terms of the Do What The Fuck You Want
- * To Public License, Version 2, as published by Sam Hocevar. See
- * http://sam.zoy.org/wtfpl/COPYING for more details.
- * 
- * @author: <a href="mailto:mibus@mibus.org">Robert Mibus</a>
- *
- * Based heavily on "Fuzzy Clock" - https://bitbucket.org/dallagi/fuzzy-clock/overview
- * (by Marco Dallagiacoma - marco.dallagiacoma@gmail.com)
- */ 
+// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
+// @author: <a href="mailto:mibus@mibus.org">Robert Mibus</a>
+// GPLv2+
 
 const St = imports.gi.St;
 const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
 const Lang = imports.lang;
+const PanelMenu = imports.ui.panelMenu;
 
 const UPDATE_INTERVAL = 5000;
+
+const AltTimeMenuButton = new Lang.Class({
+	Name: 'AltTimeMenuButton',
+	Extends: PanelMenu.Button,
+
+    _init: function() {
+        let item;
+        let hbox;
+        let vbox;
+
+        let menuAlignment = 0.25;
+        this.parent(menuAlignment);
+
+        this._clockDisplay = new St.Label({text: 'Initialising', opacity: 150});
+        this.actor.add_actor(this._clockDisplay);
+
+        item = this.menu.addSettingsAction(_("Date and Time Settings"), 'gnome-datetime-panel.desktop');
+//        this._clock = new GnomeDesktop.WallClock();
+    },
+
+
+    get_alternate_time_string: function() {
+        var now = new Date();
+
+	// TODO: Make these configurable
+	var hour_offset = 8;
+	var minute_offset = 0;
+
+	// Start with UTC
+	var hour = now.getUTCHours();
+	var minute = now.getUTCMinutes();
+	var tzname = 'WST';
+
+	// Apply offsets in a naive fashion
+	hour += hour_offset;
+	minute += minute_offset;
+
+	// Basic fix-up of minute wrap-around
+	if (minute < 0) {
+		hour--;
+		minute += 60;
+	} else if (minute >= 60) {
+		hour++;
+		minute -= 60;
+	}
+
+	// Basic fix-up of hour wrap-around
+	if (hour < 0) {
+		hour += 24;
+	} else if (hour >= 24) {
+		hour -= 24;
+	}
+
+	var remote_time = hour + ":" + (minute < 10 ? "0" : "") + minute + ' ' + tzname;
+
+	return remote_time;
+    },
+
+    enable: function() {
+        this.run = true;
+        this.on_timeout();
+        Mainloop.timeout_add(UPDATE_INTERVAL, Lang.bind(this, this.on_timeout));
+    },
+
+    disable: function() {
+        this.run = false;
+    },
+
+    on_timeout: function() {
+        this._clockDisplay.set_text(this.get_alternate_time_string());
+        return this.run;
+    },
+
+});
 
 function MultiClock() {
     this._init();
 }
 
 MultiClock.prototype = {
+    button: null,
+
     _init: function() {
-        this.date_menu = Main.panel._dateMenu;
-        this.orig_clock = this.date_menu._clock;
-        this.multi_clock = new St.Label();
-    },
-
-    Run: function() {
-        this.run = true;
-        this.on_timeout();
-        Mainloop.timeout_add(UPDATE_INTERVAL, Lang.bind(this, this.on_timeout));
-    },
-
-    MultiHour: function() {
-        let now = new Date();
-
-	local_time = now.toDateString() + "   ||   " + now.getHours() + ":" + (now.getMinutes() < 10 ? "0" : "") + now.getMinutes();
-	remote_time = ((now.getUTCHours() + 8) % 24) + ":" + (now.getUTCMinutes() < 10 ? "0" : "") + now.getUTCMinutes();
-
-	return local_time + " (" + remote_time + ")";
-    },
-
-    on_timeout: function() {
-        this.multi_clock.set_text(this.MultiHour());
-
-        return this.run;
+	this.button = new AltTimeMenuButton();
     },
 
     enable: function() {
-        this.date_menu.actor.remove_actor(this.orig_clock);
-        this.date_menu.actor.add_actor(this.multi_clock);
-
-        this.Run();
+	global.log (this.button);
+        this.button.enable();
+	Main.panel._centerBox.insert_child_at_index(this.button.container, 1);
     },
 
     disable: function() {
-        this.run = false;
-
-        this.date_menu.actor.remove_actor(this.multi_clock);
-        this.date_menu.actor.add_actor(this.orig_clock);
+	Main.panel._centerBox.remove_actor(this.button.container);
+        this.button.disable();
     }
 }
 

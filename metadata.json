@@ -3,7 +3,7 @@
   "description": "A multi-TZ clock for the gnome-shell panel", 
   "name": "MultiClock", 
   "shell-version": [
-    "3.4"
+    "3.6"
   ], 
   "url": "http://www.mibus.org/", 
   "uuid": "MultiClock@mibus.mibus.org", 
