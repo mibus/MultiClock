@@ -7,6 +7,7 @@ const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
+const GnomeDesktop = imports.gi.GnomeDesktop;
 
 const UPDATE_INTERVAL = 5000;
 
@@ -16,8 +17,6 @@ const AltTimeMenuButton = new Lang.Class({
 
     _init: function() {
         let item;
-        let hbox;
-        let vbox;
 
         let menuAlignment = 0.25;
         this.parent(menuAlignment);
@@ -31,7 +30,7 @@ const AltTimeMenuButton = new Lang.Class({
         item = this.menu.addAction('UTC+3', global.log);
         item = this.menu.addAction('UTC+4', global.log);
         item = this.menu.addAction('UTC+8', global.log);
-//        this._clock = new GnomeDesktop.WallClock();
+        this._clock = new GnomeDesktop.WallClock();
     },
 
 
@@ -73,18 +72,16 @@ const AltTimeMenuButton = new Lang.Class({
     },
 
     enable: function() {
-        this.run = true;
-        this.on_timeout();
-        Mainloop.timeout_add(UPDATE_INTERVAL, Lang.bind(this, this.on_timeout));
+        this.clock_signal_id = this._clock.connect('notify::clock', Lang.bind(this, this.update_time));
+        this.update_time();
     },
 
     disable: function() {
-        this.run = false;
+	this._clock.disconnect(this.clock_signal_id);
     },
 
-    on_timeout: function() {
+    update_time: function() {
         this._clockDisplay.set_text(this.get_alternate_time_string());
-        return this.run;
     },
 
 });
@@ -101,7 +98,6 @@ MultiClock.prototype = {
     },
 
     enable: function() {
-	global.log (this.button);
         this.button.enable();
 	Main.panel._centerBox.add_actor(this.button.container);
 	Main.panel.menuManager.addMenu(this.button.menu);
