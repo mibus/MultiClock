@@ -103,13 +103,27 @@ MultiClock.prototype = {
 
     enable: function() {
         this.button.enable();
-	Main.panel._centerBox.add_actor(this.button.container);
-	Main.panel.menuManager.addMenu(this.button.menu);
+	Main.ATMButton = this.button;
+	global.log (this.button);
+	if (this.button.container) { // 3.6
+		global.log ('GNOME-Shell ~3.6 detected...');
+		Main.panel._centerBox.add_actor(this.button.container);
+		Main.panel.menuManager.addMenu(this.button.menu);
+	} else { // 3.4
+		global.log ('GNOME-Shell ~3.4 detected...');
+		Main.panel._centerBox.add_actor(this.button.actor);
+		Main.panel._menus.addMenu(this.button.menu);
+	}
     },
 
     disable: function() {
-	Main.panel.menuManager.removeMenu(this.button.menu);
-	Main.panel._centerBox.remove_actor(this.button.container);
+	if (this.button.container) { // 3.6
+		Main.panel.menuManager.removeMenu(this.button.menu);
+		Main.panel._centerBox.remove_actor(this.button.container);
+	} else { // 3.4
+		Main.panel._centerBox.remove_actor(this.button.actor);
+		Main.panel._menus.removeMenu(this.button.menu);
+	}
         this.button.disable();
     }
 }
