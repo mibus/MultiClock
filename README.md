@@ -4,11 +4,9 @@ GNOME-Shell "MultiClock".
 
 Made because I need to reference Perth time (UTC+8) all the time.
 
-
 *CONFIGURATION*
 
-Not currently configurable...
-
+Click on the displayed "alternate" time; selection from the dropdown is saved for future logins.
 
 *INSTALLATION*
 
