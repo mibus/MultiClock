@@ -14,4 +14,4 @@ Not currently configurable...
 
 cd ~/.local/share/gnome-shell/extensions/
 
-git clone https://github.com/mibus/MultiClock.git MultiClock@mibus.mibus.org
+git clone https://github.com/mibus/MultiClock.git MultiClock@mibus.org
