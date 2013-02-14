@@ -9,11 +9,23 @@ const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
 const GnomeDesktop = imports.gi.GnomeDesktop;
 
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
+
 const UPDATE_INTERVAL = 5000;
+
+const Timezones = {
+	'UTC': { hr: 0, min: 0, tzname: 'UTC' },
+	'Australia/Adelaide': { hr: 10, min: 30, tzname: 'ACDT' },
+	'Australia/Perth': { hr: 8, min: 0, tzname: 'WST' },
+};
 
 const AltTimeMenuButton = new Lang.Class({
 	Name: 'AltTimeMenuButton',
 	Extends: PanelMenu.Button,
+
+    _schema: null,
 
     _init: function() {
         let item;
@@ -28,18 +40,26 @@ const AltTimeMenuButton = new Lang.Class({
 	this.minute_offset = 0;
 	this.tzname = 'WST';
 
-        item = this.menu.addAction('UTC', Lang.bind(this, function() { this.set_tz (0, 0, 'UTC'); }));
-        item = this.menu.addAction('Adelaide', Lang.bind(this, function() { this.set_tz (10, 30, 'CDT'); }));
-        item = this.menu.addAction('Perth', Lang.bind(this, function() { this.set_tz (8, 0, 'WST'); }));
+        item = this.menu.addAction('UTC', Lang.bind(this, function() { this.set_tz (0, 0, 'UTC', 'UTC'); }));
+        item = this.menu.addAction('Adelaide', Lang.bind(this, function() { this.set_tz (10, 30, 'CDT', 'Australia/Adelaide'); }));
+        item = this.menu.addAction('Perth', Lang.bind(this, function() { this.set_tz (8, 0, 'WST', 'Australia/Perth'); }));
 
         this._clock = new GnomeDesktop.WallClock();
+
+        this._schema = Convenience.getSettings();
+	global.log (this._schema.get_string('tz'));
+
+	let tzid = this._schema.get_string('tz');
+	let tz = Timezones[tzid];
+	this.set_tz (tz.hr, tz.min, tz.tzname, tzid);
     },
 
-    set_tz: function (hour_offset, minute_offset, tzname) {
+    set_tz: function (hour_offset, minute_offset, tzname, fulltzname) {
 	this.hour_offset = hour_offset;
 	this.minute_offset = minute_offset;
 	this.tzname = tzname;
-        this.update_time();
+	this.update_time();
+	this._schema.set_string('tz', fulltzname);
     },
 
     get_alternate_time_string: function() {
