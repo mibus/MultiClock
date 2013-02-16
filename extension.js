@@ -15,6 +15,8 @@ const Convenience = Me.imports.convenience;
 
 const UPDATE_INTERVAL = 5000;
 
+// These timezones must be matched in the "tzs" enum in the settings schema
+// I might move to using opaque strings rather than an enum in the future, though.
 const Timezones = {
 	'UTC': { hr: 0, min: 0, tzname: 'UTC' },
 	'Australia/Adelaide': { hr: 10, min: 30, tzname: 'ACDT' },
@@ -28,6 +30,7 @@ const AltTimeMenuButton = new Lang.Class({
     _schema: null,
 
     _init: function() {
+
         let item;
 
         let menuAlignment = 0.25;
@@ -36,13 +39,16 @@ const AltTimeMenuButton = new Lang.Class({
         this._clockDisplay = new St.Label({text: 'Initialising', opacity: 150});
         this.actor.add_actor(this._clockDisplay);
 
-	this.hour_offset = 8;
-	this.minute_offset = 0;
-	this.tzname = 'WST';
-
-        item = this.menu.addAction('UTC', Lang.bind(this, function() { this.set_tz (0, 0, 'UTC', 'UTC'); }));
-        item = this.menu.addAction('Adelaide', Lang.bind(this, function() { this.set_tz (10, 30, 'CDT', 'Australia/Adelaide'); }));
-        item = this.menu.addAction('Perth', Lang.bind(this, function() { this.set_tz (8, 0, 'WST', 'Australia/Perth'); }));
+	for (let tzid in Timezones) {
+		// For some reason, the closure isn't created right unless I copy the variable here.
+		// Some sort of scoping issue, despite using "let".
+		let tz = tzid;
+		this.menu.addAction (
+			tz,
+			Lang.bind(this, function () {
+				this.set_tz (tz);
+			}));
+	}
 
         this._clock = new GnomeDesktop.WallClock();
 
@@ -50,16 +56,15 @@ const AltTimeMenuButton = new Lang.Class({
 	global.log (this._schema.get_string('tz'));
 
 	let tzid = this._schema.get_string('tz');
-	let tz = Timezones[tzid];
-	this.set_tz (tz.hr, tz.min, tz.tzname, tzid);
+	this.set_tz (tzid);
     },
 
-    set_tz: function (hour_offset, minute_offset, tzname, fulltzname) {
-	this.hour_offset = hour_offset;
-	this.minute_offset = minute_offset;
-	this.tzname = tzname;
+    set_tz: function (tzid) {
+	this.hour_offset = Timezones[tzid].hr;
+	this.minute_offset = Timezones[tzid].min;
+	this.tzname = Timezones[tzid].tzname;
 	this.update_time();
-	this._schema.set_string('tz', fulltzname);
+	this._schema.set_string('tz', tzid);
     },
 
     get_alternate_time_string: function() {
