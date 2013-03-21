@@ -8,6 +8,8 @@ const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
 const GnomeDesktop = imports.gi.GnomeDesktop;
+const Gio = imports.gi.Gio;
+const Shell = imports.gi.Shell;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -28,6 +30,7 @@ const AltTimeMenuButton = new Lang.Class({
 	Extends: PanelMenu.Button,
 
     _schema: null,
+    _clock_settings: null,
 
     _init: function() {
 
@@ -53,7 +56,7 @@ const AltTimeMenuButton = new Lang.Class({
         this._clock = new GnomeDesktop.WallClock();
 
         this._schema = Convenience.getSettings();
-	global.log (this._schema.get_string('tz'));
+	this._clock_settings = new Gio.Settings({ schema: 'org.gnome.desktop.interface' });
 
 	let tzid = this._schema.get_string('tz');
 	this.set_tz (tzid);
@@ -95,7 +98,13 @@ const AltTimeMenuButton = new Lang.Class({
 		hour -= 24;
 	}
 
-	var remote_time = hour + ":" + (minute < 10 ? "0" : "") + minute + ' ' + this.tzname;
+	now.setHours(hour);
+	now.setMinutes(minute);
+	if (this._clock_settings.get_enum('clock-format')) { // 12-Hour
+		var remote_time = Shell.util_format_date('%l:%M %p ', now) + this.tzname;
+	} else { // 24-Hour
+		var remote_time = Shell.util_format_date('%R ', now) + this.tzname;
+	}
 
 	return remote_time;
     },
@@ -132,7 +141,7 @@ MultiClock.prototype = {
 	global.log (this.button);
 	if (this.button.container) { // 3.6
 		global.log ('GNOME-Shell ~3.6 detected...');
-		Main.panel._centerBox.add_actor(this.button.container);
+		Main.panel.addToStatusArea('multiclock',this.button,1,'center');
 		Main.panel.menuManager.addMenu(this.button.menu);
 	} else { // 3.4
 		global.log ('GNOME-Shell ~3.4 detected...');
