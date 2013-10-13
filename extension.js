@@ -21,8 +21,16 @@ const UPDATE_INTERVAL = 5000;
 // I might move to using opaque strings rather than an enum in the future, though.
 const Timezones = {
 	'UTC': { hr: 0, min: 0, tzname: 'UTC' },
-	'Australia/Adelaide': { hr: 10, min: 30, tzname: 'ACDT' },
+        'America/Los Angeles': { hr: -8, min: 0, tzname: 'PST' },
+	'America/Los Angeles (Summer)': { hr: -7, min:0, tzname: 'PDT' },
+	'Australia/Adelaide': { hr: 9, min: 30, tzname: 'ACDT' },
+	'Australia/Adelaide (Summar)': { hr: 10, min: 30, tzname: 'ACDT' },
 	'Australia/Perth': { hr: 8, min: 0, tzname: 'WST' },
+        'Australia/Melbourne': { hr: 10, min: 0, tzname: 'EST' },
+        'Australia/Melbourne (Summer)': { hr: 11, min: 0, tzname: 'AEDT' },
+        'Australia/Sydney': { hr: 10, min: 0, tzname: 'EST' },
+        'Australia/Sydney (Summer)': { hr: 11, min: 0, tzname: 'AEDT' },
+        'Pacific/Auckland': { hr: 12, min: 0, tzname: 'NZST' },
 };
 
 const AltTimeMenuButton = new Lang.Class({
@@ -76,7 +84,7 @@ const AltTimeMenuButton = new Lang.Class({
 	// Start with UTC
 	var hour = now.getUTCHours();
 	var minute = now.getUTCMinutes();
-	var tzname = 'WST';
+	var tzname = 'UTC';
 
 	// Apply offsets in a naive fashion
 	hour += this.hour_offset;
@@ -139,8 +147,8 @@ MultiClock.prototype = {
         this.button.enable();
 	Main.ATMButton = this.button;
 	global.log (this.button);
-	if (this.button.container) { // 3.6
-		global.log ('GNOME-Shell ~3.6 detected...');
+	if (this.button.container) { // 3.6+
+		global.log ('GNOME-Shell 3.6+ detected...');
 		Main.panel.addToStatusArea('multiclock',this.button,1,'center');
 		Main.panel.menuManager.addMenu(this.button.menu);
 	} else { // 3.4
@@ -151,7 +159,7 @@ MultiClock.prototype = {
     },
 
     disable: function() {
-	if (this.button.container) { // 3.6
+	if (this.button.container) { // 3.6+
 		Main.panel.menuManager.removeMenu(this.button.menu);
 		Main.panel._centerBox.remove_actor(this.button.container);
 	} else { // 3.4

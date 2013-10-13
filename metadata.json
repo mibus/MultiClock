@@ -10,5 +10,5 @@
   "url": "https://github.com/mibus/MultiClock",
   "uuid": "MultiClock@mibus.org",
   "settings-schema":  "org.gnome.shell.extensions.mibusMultiClock",
-  "version": 3
+  "version": 4
 }
