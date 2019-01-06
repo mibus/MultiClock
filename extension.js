@@ -24,7 +24,7 @@ const Timezones = {
         'America/Los Angeles': { hr: -8, min: 0, tzname: 'PST' },
 	'America/Los Angeles (Summer)': { hr: -7, min:0, tzname: 'PDT' },
 	'Australia/Adelaide': { hr: 9, min: 30, tzname: 'ACDT' },
-	'Australia/Adelaide (Summar)': { hr: 10, min: 30, tzname: 'ACDT' },
+	'Australia/Adelaide (Summer)': { hr: 10, min: 30, tzname: 'ACDT' },
 	'Australia/Perth': { hr: 8, min: 0, tzname: 'WST' },
         'Australia/Melbourne': { hr: 10, min: 0, tzname: 'EST' },
         'Australia/Melbourne (Summer)': { hr: 11, min: 0, tzname: 'AEDT' },
