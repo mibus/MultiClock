@@ -10,6 +10,7 @@ const PanelMenu = imports.ui.panelMenu;
 const GnomeDesktop = imports.gi.GnomeDesktop;
 const Gio = imports.gi.Gio;
 const Shell = imports.gi.Shell;
+const Clutter = imports.gi.Clutter;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -49,6 +50,7 @@ const AltTimeMenuButton = new Lang.Class({
 
         this._clockDisplay = new St.Label({text: 'Initialising', opacity: 150});
         this.actor.add_actor(this._clockDisplay);
+	this.actor.set_y_align(Clutter.ActorAlign.CENTER);
 
 	for (let tzid in Timezones) {
 		// For some reason, the closure isn't created right unless I copy the variable here.
