@@ -164,6 +164,9 @@ MultiClock.prototype = {
 	if (this.button.container) { // 3.6+
 		Main.panel.menuManager.removeMenu(this.button.menu);
 		Main.panel._centerBox.remove_actor(this.button.container);
+		if (Main.panel.statusArea.hasOwnProperty('multiclock')) {
+			delete Main.panel.statusArea['multiclock'];
+		}
 	} else { // 3.4
 		Main.panel._centerBox.remove_actor(this.button.actor);
 		Main.panel._menus.removeMenu(this.button.menu);
