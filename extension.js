@@ -19,11 +19,9 @@ const Convenience = Me.imports.convenience;
 
 const UPDATE_INTERVAL = 5000;
 
-// These timezones must be matched in the "tzs" enum in the settings schema
-// I might move to using opaque strings rather than an enum in the future, though.
 const Timezones = [
     'UTC',
-    'America/Los Angeles',
+    'America/Los_Angeles',
     'Australia/Adelaide',
     'Australia/Perth',
     'Australia/Melbourne',
@@ -64,14 +62,14 @@ const AltTimeMenuButton = new Lang.Class({
         this._schema = Convenience.getSettings();
 	this._clock_settings = new Gio.Settings({ schema: 'org.gnome.desktop.interface' });
 
-	let tzid = this._schema.get_string('tz');
+	let tzid = this._schema.get_string('timezone');
 	this.set_tz (tzid);
     },
 
     set_tz: function (tzid) {
 	this.selected_tz = GLib.TimeZone.new(tzid);
 	this.update_time();
-	this._schema.set_string('tz', tzid);
+	this._schema.set_string('timezone', tzid);
     },
 
     get_alternate_time_string: function() {

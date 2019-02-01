@@ -1,19 +1,7 @@
 <schemalist>
-  <enum id="org.gnome.shell.extensions.mibusMultiClock.tzs">
-    <value value="1" nick="UTC" />
-    <value value="9" nick="America/Los Angeles" />
-    <value value="10" nick="America/Los Angeles (Summer)" />
-    <value value="2" nick="Australia/Adelaide" />
-    <value value="4" nick="Australia/Adelaide (Summer)" />
-    <value value="5" nick="Australia/Melbourne" />
-    <value value="6" nick="Australia/Melbourne (Summer)" />
-    <value value="3" nick="Australia/Perth" />
-    <value value="7" nick="Australia/Sydney" />
-    <value value="8" nick="Australia/Sydney (Summer)" />
-  </enum>
   <schema id="org.gnome.shell.extensions.mibusMultiClock" path="/org/gnome/shell/extensions/mibusMultiClock/">
-    <key name="tz" enum="org.gnome.shell.extensions.mibusMultiClock.tzs">
-      <default>'UTC'</default>
+    <key name="timezone" type="s">
+      <default>"UTC"</default>
       <summary>Select a secondary timezone</summary>
     </key>
   </schema>
