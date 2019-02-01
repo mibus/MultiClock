@@ -7,6 +7,7 @@ const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
+const GLib = imports.gi.GLib;
 const GnomeDesktop = imports.gi.GnomeDesktop;
 const Gio = imports.gi.Gio;
 const Shell = imports.gi.Shell;
@@ -20,19 +21,15 @@ const UPDATE_INTERVAL = 5000;
 
 // These timezones must be matched in the "tzs" enum in the settings schema
 // I might move to using opaque strings rather than an enum in the future, though.
-const Timezones = {
-	'UTC': { hr: 0, min: 0, tzname: 'UTC' },
-        'America/Los Angeles': { hr: -8, min: 0, tzname: 'PST' },
-	'America/Los Angeles (Summer)': { hr: -7, min:0, tzname: 'PDT' },
-	'Australia/Adelaide': { hr: 9, min: 30, tzname: 'ACDT' },
-	'Australia/Adelaide (Summer)': { hr: 10, min: 30, tzname: 'ACDT' },
-	'Australia/Perth': { hr: 8, min: 0, tzname: 'WST' },
-        'Australia/Melbourne': { hr: 10, min: 0, tzname: 'EST' },
-        'Australia/Melbourne (Summer)': { hr: 11, min: 0, tzname: 'AEDT' },
-        'Australia/Sydney': { hr: 10, min: 0, tzname: 'EST' },
-        'Australia/Sydney (Summer)': { hr: 11, min: 0, tzname: 'AEDT' },
-        'Pacific/Auckland': { hr: 12, min: 0, tzname: 'NZST' },
-};
+const Timezones = [
+    'UTC',
+    'America/Los Angeles',
+    'Australia/Adelaide',
+    'Australia/Perth',
+    'Australia/Melbourne',
+    'Australia/Sydney',
+    'Pacific/Auckland',
+];
 
 const AltTimeMenuButton = new Lang.Class({
 	Name: 'AltTimeMenuButton',
@@ -40,6 +37,7 @@ const AltTimeMenuButton = new Lang.Class({
 
     _schema: null,
     _clock_settings: null,
+    selected_tz: null,
 
     _init: function() {
 
@@ -52,10 +50,8 @@ const AltTimeMenuButton = new Lang.Class({
         this.actor.add_actor(this._clockDisplay);
 	this.actor.set_y_align(Clutter.ActorAlign.CENTER);
 
-	for (let tzid in Timezones) {
-		// For some reason, the closure isn't created right unless I copy the variable here.
-		// Some sort of scoping issue, despite using "let".
-		let tz = tzid;
+	for (var i = 0; i < Timezones.length; i++) {
+		let tz = Timezones[i];
 		this.menu.addAction (
 			tz,
 			Lang.bind(this, function () {
@@ -73,47 +69,20 @@ const AltTimeMenuButton = new Lang.Class({
     },
 
     set_tz: function (tzid) {
-	this.hour_offset = Timezones[tzid].hr;
-	this.minute_offset = Timezones[tzid].min;
-	this.tzname = Timezones[tzid].tzname;
+	this.selected_tz = GLib.TimeZone.new(tzid);
 	this.update_time();
 	this._schema.set_string('tz', tzid);
     },
 
     get_alternate_time_string: function() {
-        var now = new Date();
+	if (!this.selected_tz)
+	    return "Initialising";
 
-	// Start with UTC
-	var hour = now.getUTCHours();
-	var minute = now.getUTCMinutes();
-	var tzname = 'UTC';
-
-	// Apply offsets in a naive fashion
-	hour += this.hour_offset;
-	minute += this.minute_offset;
-
-	// Basic fix-up of minute wrap-around
-	if (minute < 0) {
-		hour--;
-		minute += 60;
-	} else if (minute >= 60) {
-		hour++;
-		minute -= 60;
-	}
-
-	// Basic fix-up of hour wrap-around
-	if (hour < 0) {
-		hour += 24;
-	} else if (hour >= 24) {
-		hour -= 24;
-	}
-
-	now.setHours(hour);
-	now.setMinutes(minute);
+        var now = GLib.DateTime.new_now(this.selected_tz);
 	if (this._clock_settings.get_enum('clock-format')) { // 12-Hour
-		var remote_time = Shell.util_format_date('%l:%M %p ', now) + this.tzname;
+		var remote_time = now.format('%l:%M %p %Z');
 	} else { // 24-Hour
-		var remote_time = Shell.util_format_date('%R ', now) + this.tzname;
+		var remote_time = now.format('%R %Z');
 	}
 
 	return remote_time;
