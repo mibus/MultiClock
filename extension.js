@@ -7,6 +7,7 @@ const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
+const ModalDialog = imports.ui.modalDialog;
 const GLib = imports.gi.GLib;
 const GnomeDesktop = imports.gi.GnomeDesktop;
 const Gio = imports.gi.Gio;
@@ -44,12 +45,25 @@ const AltTimeMenuButton = new Lang.Class({
         let menuAlignment = 0.25;
         this.parent(menuAlignment);
 
+	// Widget set-up
         this._clockDisplay = new St.Label({text: 'Initialising', opacity: 150});
         this.actor.add_actor(this._clockDisplay);
 	this.actor.set_y_align(Clutter.ActorAlign.CENTER);
 
+	// Importing clock-related things from outside
+        this._clock = new GnomeDesktop.WallClock();
+	this._clock_settings = new Gio.Settings({ schema: 'org.gnome.desktop.interface' });
+
+	// Loading our own settings
+        this._schema = Convenience.getSettings();
+	let tzid = this._schema.get_string('timezone');
+
+	// Making the main timezone selection menu
+	var seen_tz = false;
 	for (var i = 0; i < Timezones.length; i++) {
 		let tz = Timezones[i];
+		if (tz == tzid)
+			seen_tz = true;
 		this.menu.addAction (
 			tz,
 			Lang.bind(this, function () {
@@ -57,13 +71,26 @@ const AltTimeMenuButton = new Lang.Class({
 			}));
 	}
 
-        this._clock = new GnomeDesktop.WallClock();
+	// Adding "Other..."
+	this.menu.addAction ('Other...',
+		Lang.bind(this, function() {
+		    var d = new CustomDialog(this);
+		    d.open();
+		}));
 
-        this._schema = Convenience.getSettings();
-	this._clock_settings = new Gio.Settings({ schema: 'org.gnome.desktop.interface' });
+	// Internally loading our stored timezone, including adding it as an extra menu option if appropriate
+	if (seen_tz)
+		this.set_tz (tzid);
+        else
+		this.set_custom_tz(tzid);
+    },
 
-	let tzid = this._schema.get_string('timezone');
-	this.set_tz (tzid);
+    set_custom_tz: function (tzid) {
+	this.set_tz(tzid);
+	this.menu.addAction (tzid,
+			Lang.bind(this, function () {
+				this.set_tz (tzid);
+			}));
     },
 
     set_tz: function (tzid) {
@@ -128,6 +155,48 @@ MultiClock.prototype = {
 		delete Main.panel.statusArea['multiclock'];
 	}
         this.button.disable();
+    }
+}
+
+var CustomDialog = class extends ModalDialog.ModalDialog {
+    constructor(caller) {
+        super({ styleClass: 'run-dialog',
+                destroyOnClose: false });
+	this.caller = caller;
+	global.log('Started constructor for CustomDialog.');
+        let label = new St.Label({ style_class: 'run-dialog-label',
+                                   text: _("Enter a timezone identifier") });
+
+        this.contentLayout.add(label, { x_fill: false,
+                                        x_align: St.Align.START,
+                                        y_align: St.Align.START });
+
+        let entry = new St.Entry({ style_class: 'run-dialog-entry',
+                                   can_focus: true });
+
+        entry.label_actor = label;
+
+	global.log('In constructor for CustomDialog.');
+        this._entryText = entry.clutter_text;
+        this.contentLayout.add(entry, { y_align: St.Align.START });
+        this.setInitialKeyFocus(this._entryText);
+        this.setButtons([{ action: this.close.bind(this),
+                           label: _("Close"),
+                           key: Clutter.Escape }]);
+        this._entryText.connect('activate', (o) => {
+            this.popModal();
+            this._run(o.get_text())
+	    this.close();
+        });
+	global.log('Done CustomDialog constructor');
+    }
+    _run(input) {
+	this.caller.set_custom_tz(input);
+    }
+    open() {
+	global.log('open() for CustomDialog');
+        this._entryText.set_text('');
+        super.open();
     }
 }
 
