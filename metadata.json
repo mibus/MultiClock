@@ -3,13 +3,10 @@
   "description": "A clock for showing a second timezone in the panel.", 
   "name": "MultiClock", 
   "shell-version": [
-    "3.4",
-    "3.6",
-    "3.8",
     "3.30"
   ], 
   "url": "https://github.com/mibus/MultiClock",
   "uuid": "MultiClock@mibus.org",
   "settings-schema":  "org.gnome.shell.extensions.mibusMultiClock",
-  "version": 5
+  "version": 6
 }
