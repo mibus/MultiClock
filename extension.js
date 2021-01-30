@@ -8,6 +8,7 @@ const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
 const ModalDialog = imports.ui.modalDialog;
+const GObject = imports.gi.GObject;
 const GLib = imports.gi.GLib;
 const GnomeDesktop = imports.gi.GnomeDesktop;
 const Gio = imports.gi.Gio;
@@ -158,9 +159,9 @@ MultiClock.prototype = {
     }
 }
 
-var CustomDialog = class extends ModalDialog.ModalDialog {
-    constructor(caller) {
-        super({ styleClass: 'run-dialog',
+var CustomDialog = GObject.registerClass(class extends ModalDialog.ModalDialog {
+    _init(caller) {
+        super._init({ styleClass: 'run-dialog',
                 destroyOnClose: false });
 	this.caller = caller;
 	global.log('Started constructor for CustomDialog.');
@@ -198,7 +199,7 @@ var CustomDialog = class extends ModalDialog.ModalDialog {
         this._entryText.set_text('');
         super.open();
     }
-}
+});
 
 function init(meta) {
     global.log("Starting up MultiClock!");
