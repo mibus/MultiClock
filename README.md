@@ -28,4 +28,4 @@ dbus-run-session -- gnome-shell --nested --wayland
 
 # LICENSE
 
-This extension is distributed under the terms of the GNU General Public License, version 2 or later. See the LICENSE file for details.
+This extension is distributed under the terms of the GNU General Public License, version 2. See the LICENSE file for details.

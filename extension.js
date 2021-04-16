@@ -1,6 +1,6 @@
 // -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
 // @author: <a href="mailto:mibus@mibus.org">Robert Mibus</a>
-// GPLv2+
+// GPLv2
 
 const St = imports.gi.St;
 const Main = imports.ui.main;
